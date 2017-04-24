@@ -4,6 +4,7 @@ Calculate the projection of a point on the surface of an ellipsoid (ellipse in 2
 
 Two C-routines to calculate the projection P of a point W on the ellipse,
 
+----
 /// calculate `(pX, pY)`, the projection of `(wX, wY)` on the ellipse of axes `lenX, lenY`
 void projectEllipse2D(double* pX,        double* pY,
                       const double wX,   const double wY,
@@ -17,3 +18,4 @@ void projectEllipse3D(double p[3],
                       const double len[3],
                       const double precision);
                       
+----
