@@ -1,6 +1,6 @@
 # Orthogonal-Projection-on-Ellipsoid
-Calculate the projection of a 3D point on the surface of a ellipsoid,
-or the projection of a 2D point on the surface of a ellipse.
+Calculate the projection of a 3D-point on the surface of an ellipsoid,
+or the projection of a 2D-point on the surface of an ellipse.
 
 
 Two C-routines to calculate the projection P of a point W on the ellipse,
