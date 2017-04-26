@@ -15,17 +15,17 @@
 #define PROJECT_ELLIPSE_H
 
 /// calculate `(pX, pY)`, the projection of `(wX, wY)` on the ellipse of axes `lenX, lenY`
-void projectEllipse2D(double* pX,        double* pY,
-                      const double wX,   const double wY,
-                      const double lenX, const double lenY,
-                      const double precision);
+void projectEllipse(double* pX,  double* pY,
+                    double wX,   double wY,
+                    double lenX, double lenY,
+                    double precision);
 
 
 /// calculate `p`, the projection of a 3D point `w` on the ellipse of axes given in `len[]`
-void projectEllipse3D(double p[3],
+void projectEllipsoid(double p[3],
                       const double w[3],
                       const double len[3],
-                      const double precision);
+                      double precision);
 
 
 

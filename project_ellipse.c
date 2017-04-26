@@ -41,10 +41,10 @@
  In double precision (double=double), `tolerance` should be greater than 1e-13.
  */
 
-void projectEllipse2D(double *  pX, double * pY,
-                      double    wX, double   wY,
-                      double  lenX, double lenY,
-                      const double tolerance)
+void projectEllipse(double *  pX, double * pY,
+                    double    wX, double   wY,
+                    double  lenX, double lenY,
+                    const double tolerance)
 {
     // handle special cases:
     if ( wX == 0 )
@@ -127,7 +127,7 @@ void projectEllipse2D(double *  pX, double * pY,
         
 #if ( 0 )
         if ( cnt > 16 )
-            fprintf(stderr, "projectEllipse2D fails %u :  h %+f  F %e  dh %e\n", cnt, h, F, dh);
+            fprintf(stderr, "projectEllipse fails %u :  h %+f  F %e  dh %e\n", cnt, h, F, dh);
 #endif
 
         if ( ++cnt > 20 )
@@ -147,7 +147,7 @@ void projectEllipse2D(double *  pX, double * pY,
 
 
 /**
- projectEllipse3D calculates the projection P = (pX, pY, pZ) of the point W = (wX, wY, wZ) 
+ projectEllipsoid calculates the projection P = (pX, pY, pZ) of the point W = (wX, wY, wZ)
  on the ellipse that is aligned with the X and Y axis, and has radii (lenX, lenY, lenZ).
  
  Method:
@@ -169,7 +169,7 @@ void projectEllipse2D(double *  pX, double * pY,
  
  In double precision (double=double), `precision` should be greater than 1e-13.
  */
-void projectEllipse3D(double  p[3],
+void projectEllipsoid(double  p[3],
                       const double w[3],
                       const double len[3],
                       const double tolerance)
@@ -178,19 +178,19 @@ void projectEllipse3D(double  p[3],
     if ( w[0] == 0 )
     {
         p[0] = 0;
-        projectEllipse2D(p+1, p+2, w[1], w[2], len[1], len[2], tolerance);
+        projectEllipse(p+1, p+2, w[1], w[2], len[1], len[2], tolerance);
         return;
     }
     if ( w[1] == 0 )
     {
         p[1] = 0;
-        projectEllipse2D(p+0, p+2, w[0], w[2], len[0], len[2], tolerance);
+        projectEllipse(p+0, p+2, w[0], w[2], len[0], len[2], tolerance);
         return;
     }
     if ( w[2] == 0 )
     {
         p[2] = 0;
-        projectEllipse2D(p+0, p+1, w[0], w[1], len[0], len[1], tolerance);
+        projectEllipse(p+0, p+1, w[0], w[1], len[0], len[1], tolerance);
         return;
     }
 
@@ -268,7 +268,7 @@ void projectEllipse3D(double  p[3],
 #if ( 0 )
         if ( cnt > 16 )
         {
-            fprintf(stderr, "projectEllipse3D fails %u :  h %+f  F %.6e  dh %.6e\n", cnt, h, F, dh);
+            fprintf(stderr, "projectEllipsoid fails %u :  h %+f  F %.6e  dh %.6e\n", cnt, h, F, dh);
             //fprintf(stderr, "    pos  %+.10f     %+.10f       %+.10f\n", w[0], w[1], w[2]);
             //fprintf(stderr, "    F    %+.10f  dF %+.10f   ddF %+.10f\n", F, dF, ddF);
         }
