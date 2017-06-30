@@ -17,15 +17,13 @@
 /// calculate `(pX, pY)`, the projection of `(wX, wY)` on the ellipse of axes `lenX, lenY`
 void projectEllipse(double* pX,  double* pY,
                     double wX,   double wY,
-                    double lenX, double lenY,
-                    double precision);
+                    double lenX, double lenY);
 
 
 /// calculate `p`, the projection of a 3D point `w` on the ellipse of axes given in `len[]`
 void projectEllipsoid(double p[3],
                       const double w[3],
-                      const double len[3],
-                      double precision);
+                      const double len[3]);
 
 
 

@@ -10,12 +10,10 @@
  This code is Open Source covered by the GNU GPL v3.0 License
  */
 
-
 #include "project_ellipse.h"
 
 #include <math.h>
-
-//#include <cstdio>
+//#include <stdio.h>
 
 /**
  projectEllipse2D calculates the projection P = (pX, pY) of the point W = (wX, wY)
@@ -37,14 +35,11 @@
  @endcode
  We follow Newton's rule to find the root of F(h), and use the formula above to
  calculate the projection.
-
- In double precision (double=double), `tolerance` should be greater than 1e-13.
  */
 
 void projectEllipse(double *  pX, double * pY,
                     double    wX, double   wY,
-                    double  lenX, double lenY,
-                    const double tolerance)
+                    double  lenX, double lenY)
 {
     // handle special cases:
     if ( wX == 0 )
@@ -63,7 +58,7 @@ void projectEllipse(double *  pX, double * pY,
     double aa = lenX * lenX;
     double bb = lenY * lenY;
     
-    double h = 0, dh = INFINITY;
+    double h = 0, h_old;
     
     // we derive a lower limit for 'h' from  pX^2 + pY^2 > max(lenX,lenY)^2
     double RR = ( bb < aa ) ? aa : bb;
@@ -71,74 +66,71 @@ void projectEllipse(double *  pX, double * pY,
     double hmin = sqrt( ( wX*wX*aa*aa + wY*wY*bb*bb ) / RR ) - RR;
     
     // we derive another lower limit for 'h' from  |pX| < lenX
-    double hm = ( fabs(wX) - lenX ) * lenX;
-    if ( hm > hmin )
-        hmin = hm;
+    h = ( fabs(wX) - lenX ) * lenX;
+    if ( h > hmin )
+        hmin = h;
 
     // we derive another lower limit for 'h' from  |pY| < lenY
-    hm = ( fabs(wY) - lenY ) * lenY;
-    if ( hm > hmin )
-        hmin = hm;
+    h = ( fabs(wY) - lenY ) * lenY;
+    if ( h > hmin )
+        hmin = h;
 
     // if the point is outside, then 'h' should be positive:
     if ( wX*wX/aa + wY*wY/bb > 1 )
     {
         if ( hmin < 0 )
             hmin = 0;
-        h = hmin;
     }
-    else
-    {
-        // we derive an upper limit for 'h' from  pX^2 + pY^2 > min(lenX,lenY)^2
-        double rr = ( aa < bb ) ? aa : bb;
-        hm = sqrt( ( wX*wX*aa*aa + wY*wY*bb*bb ) / rr ) - rr;
-        if ( hm < 0 )
-            h = hm;
-    }
-
-    //fprintf(stderr, " <<< %+.10f  %+.10f    hmin %+10.4f", wX, wY, hmin);
+    
+    h = hmin;
 
     // follow Newton's iteration to find the root
     unsigned cnt = 0;
-    while ( fabs(dh) > tolerance )
-    {
+    do {
         double aah = aa + h;
         double bbh = bb + h;
 
-        *pX = wX * aa / aah;
-        *pY = wY * bb / bbh;
-         
-        double pXX = *pX * *pX / aa;
-        double pYY = *pY * *pY / bb;
+        double waX = wX / aah;
+        double waY = wY / bbh;
+        
+        double pXX = waX * waX * aa;
+        double pYY = waY * waY * bb;
+
+        h_old = h;
         
         double F    = 1 - ( pXX         + pYY       );
         double dF   = 2 * ( pXX / aah   + pYY / bbh );
-        dh = - F / dF;
+
+        // Newtons' method
+        h -= F / dF;
         
-        //fprintf(stderr, "  %i : h %+f  F %+20.16f  dF %+20.16f  dh %e\n", cnt, h, F, dF, dh);
+        //fprintf(stderr, "  %i : h %+f  F %+20.16f  dF %+20.16f  dh %e\n", cnt, h, F, dF, h-h_old);
         
-        if ( h+dh < hmin )
+        if ( h < hmin )
         {
-            h = 0.5 * ( h + hmin );
+            h = 0.5 * ( h_old + hmin );
             continue;
         }
-
-        h += dh;
         
 #if ( 0 )
         if ( cnt > 16 )
-            fprintf(stderr, "projectEllipse fails %u :  h %+f  F %e  dh %e\n", cnt, h, F, dh);
+            fprintf(stderr, "projectEllipse fails %u :  h %+f  F %+e  dh %e\n", cnt, h, F, h-h_old);
 #endif
 
         if ( ++cnt > 20 )
             break;
-    }
-    
-    //fprintf(stderr, " %2i  >>> h %+12.8f   dh  %+20.16f\n", cnt, h, dh);
+        
+    } while ( h > h_old );
 
-    //calculate the projection from h
+    // calculate the projection from h
     *pX = wX * aa / ( aa + h );
     *pY = wY * bb / ( bb + h );
+    
+#if ( 0 )
+    // verify that projection is on ellipse:
+    double F = 1 - ( pX*pX/aa + pY*pY/bb );
+    fprintf(stderr, " %2i  >>> h %12.8f  F  %+e\n", cnt, h, F);
+#endif
 }
 
 
@@ -166,31 +158,28 @@ void projectEllipse(double *  pX, double * pY,
  @endcode
  We follow Newton's rule to find the root of F(h), and use the formula above to
  calculate the projection.
- 
- In double precision (double=double), `precision` should be greater than 1e-13.
  */
 void projectEllipsoid(double  p[3],
                       const double w[3],
-                      const double len[3],
-                      const double tolerance)
+                      const double len[3])
 {
     // handle special cases:
     if ( w[0] == 0 )
     {
         p[0] = 0;
-        projectEllipse(p+1, p+2, w[1], w[2], len[1], len[2], tolerance);
+        projectEllipse(p+1, p+2, w[1], w[2], len[1], len[2]);
         return;
     }
     if ( w[1] == 0 )
     {
         p[1] = 0;
-        projectEllipse(p+0, p+2, w[0], w[2], len[0], len[2], tolerance);
+        projectEllipse(p+0, p+2, w[0], w[2], len[0], len[2]);
         return;
     }
     if ( w[2] == 0 )
     {
         p[2] = 0;
-        projectEllipse(p+0, p+1, w[0], w[1], len[0], len[1], tolerance);
+        projectEllipse(p+0, p+1, w[0], w[1], len[0], len[1]);
         return;
     }
 
@@ -198,7 +187,7 @@ void projectEllipsoid(double  p[3],
     double bb = len[1] * len[1];
     double cc = len[2] * len[2];
     
-    double h = 0, dh = INFINITY;
+    double h = 0, h_old;
 
     // we derive a lower limit for 'h' from  pX^2 + pY^2 + pZ^2 < max(lenX,lenY,lenZ)^2
     double RR = ( bb < aa ) ? ( cc < aa ? aa : cc ) : ( cc < bb ? bb : cc );
@@ -206,69 +195,69 @@ void projectEllipsoid(double  p[3],
     double hmin = sqrt( ( w[0]*w[0]*aa*aa + w[1]*w[1]*bb*bb + w[2]*w[2]*cc*cc ) / RR ) - RR;
 
     // we derive another lower limit for 'h' from  |pX| < lenX
-    double hm = ( fabs(w[0]) - len[0] ) * len[0];
-    if ( hm > hmin )
-        hmin = hm;
+    h = ( fabs(w[0]) - len[0] ) * len[0];
+    if ( h > hmin )
+        hmin = h;
 
     // we derive another lower limit for 'h' from  |pY| < lenY
-    hm = ( fabs(w[1]) - len[1] ) * len[1];
-    if ( hm > hmin )
-        hmin = hm;
+    h = ( fabs(w[1]) - len[1] ) * len[1];
+    if ( h > hmin )
+        hmin = h;
     
     // we derive another lower limit for 'h' from  |pZ| < lenZ
-    hm = ( fabs(w[2]) - len[2] ) * len[2];
-    if ( hm > hmin )
-        hmin = hm;
+    h = ( fabs(w[2]) - len[2] ) * len[2];
+    if ( h > hmin )
+        hmin = h;
 
-    // if the point is outside, then 'h' should be positive:
     if ( w[0]*w[0]/aa + w[1]*w[1]/bb + w[2]*w[2]/cc > 1 )
     {
+        // if the point is outside, then 'h' should be positive:
         if ( hmin < 0 )
             hmin = 0;
-        h = hmin;
-    }
-    else
-    {
-        // we derive an upper limit for 'h' from  pX^2 + pY^2 + pZ^2 > min(lenX,lenY,lenZ)^2
-        double rr = ( aa < bb ) ? ( aa < cc ? aa : cc ) : ( bb < cc ? bb : cc );
-        hm = sqrt( ( w[0]*w[0]*aa*aa + w[1]*w[1]*bb*bb + w[2]*w[2]*cc*cc ) / rr ) - rr;
-        if ( hm < 0 )
-            h = hm;
     }
 
-    // follow Newton's iteration to find the largest root
+    h = hmin;
+    //fprintf(stderr, "----- h %+f\n", h);
+
+    /*
+     Follow Newton's iteration to find the largest root.
+     We start with h>0, and h should only increase
+     */
     unsigned cnt = 0;
-    while ( fabs(dh) > tolerance )
-    {
+    do {
         double aah = aa + h;
         double bbh = bb + h;
         double cch = cc + h;
 
-        double pX = w[0] * aa / aah;
-        double pY = w[1] * bb / bbh;
-        double pZ = w[2] * cc / cch;
+        double waX = w[0] / aah;
+        double waY = w[1] / bbh;
+        double waZ = w[2] / cch;
         
-        double pXX = pX * pX / aa;
-        double pYY = pY * pY / bb;
-        double pZZ = pZ * pZ / cc;
+        double pXX = waX * waX * aa;
+        double pYY = waY * waY * bb;
+        double pZZ = waZ * waZ * cc;
+
+        h_old = h;
 
         double   F = 1 - ( pXX         + pYY         + pZZ       );
         double  dF = 2 * ( pXX / aah   + pYY / bbh   + pZZ / cch );
 
-        dh = - F / dF;
+        // Newton's method
+        h -= F / dF;
         
-        if ( h+dh < hmin )
+        //fprintf(stderr, "  %i : h %+f  F %+e dh %+.20f\n", cnt, h_old, F, h-h_old);
+        //fprintf(stderr, "       %+.10f   %+.10f   %+.10f   %+.10f\n", F, F/dF, ddF/dF, dddF/dF);
+
+        if ( h < hmin )
         {
-            h = 0.5 * ( h + hmin );
+            h = 0.5 * ( h_old + hmin );
             continue;
         }
-        
-        h += dh;
 
 #if ( 0 )
         if ( cnt > 16 )
         {
-            fprintf(stderr, "projectEllipsoid fails %u :  h %+f  F %.6e  dh %.6e\n", cnt, h, F, dh);
+            fprintf(stderr, "projectEllipsoid fails %u :  h %+f  F %.6e dh %.6e\n", cnt, h_old, F, h-h_old);
             //fprintf(stderr, "    pos  %+.10f     %+.10f       %+.10f\n", w[0], w[1], w[2]);
             //fprintf(stderr, "    F    %+.10f  dF %+.10f   ddF %+.10f\n", F, dF, ddF);
         }
@@ -276,14 +265,19 @@ void projectEllipsoid(double  p[3],
 
         if ( ++cnt > 20 )
             break;
-    }
+        
+    } while ( h > h_old );
 
-    //fprintf(stderr, " %2i  >>> h %12.8f  dh  %20.16f\n", cnt, h, dh);
-
-    //calculate the projection from h
+    // calculate the projection from h
     p[0] = w[0] * aa / ( aa + h );
     p[1] = w[1] * bb / ( bb + h );
     p[2] = w[2] * cc / ( cc + h );
+    
+#if ( 0 )
+    // verify that projection is on ellipse
+    double F = 1 - ( p[0]*p[0]/aa + p[1]*p[1]/bb + p[2]*p[2]/cc );
+    fprintf(stderr, " %2i  >>> h %12.8f  F  %+e\n", cnt, h, F);
+#endif
 }
 
 
