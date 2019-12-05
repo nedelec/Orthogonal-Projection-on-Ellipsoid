@@ -14,6 +14,11 @@
 #ifndef PROJECT_ELLIPSE_H
 #define PROJECT_ELLIPSE_H
 
+
+/// set the floating point precision here:
+typedef double real;
+
+
 /// calculate `(pX, pY)`, the projection of `(wX, wY)` on the ellipse of axes `lenX, lenY`
 void projectEllipse(double* pX,  double* pY,
                     double wX,   double wY,
