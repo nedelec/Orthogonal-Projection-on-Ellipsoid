@@ -6,14 +6,14 @@ The result is calculated with the precision of the machine.
 
 ----
 
-/// set the floating point precision here:
+/// set the floating point precision here:  
 typedef double real;
 
 
 ----
 
 
-/// calculate `(pX, pY)`, the projection of `(wX, wY)` on the ellipse of axes `radX, radY`
+/// calculate `(pX, pY)`, the projection of `(wX, wY)` on the ellipse of axes `radX, radY`  
 void projectEllipse(real* pX,  real* pY,
                     real wX,   real wY,
                     real radX, real radY);
@@ -23,7 +23,7 @@ void projectEllipse(real* pX,  real* pY,
 ----
 
 
-/// calculate `p`, the projection of a 3D point `w` on the ellipse of axes given in `rad[]`
+/// calculate `p`, the projection of a 3D point `w` on the ellipse of axes given in `rad[]`  
 void projectEllipsoid(real p[3],
                       const real w[3],
                       const real rad[3]);
